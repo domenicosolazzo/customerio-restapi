@@ -25,69 +25,48 @@ app = json_flask_app(__name__)
 
 cio = CustomerIO(siteKey, apiKey)
 
+def parseCustomerObject(customer):
+    return {
+        'customer':{
+            'id':customer[0],
+            'email':customer[1]
+        },
+        'date':datetime.datetime.utcnow().isoformat()
+    }
+
+def __signupCustomer(contactCustomerIO=False):
+    customer = facade.retrieveEmail(email)
+    signup = contactCustomerIO
+    if not customer:
+        facade.saveEmail(email)
+        customer = facade.retrieveEmail(email)
+        signup = True
+
+    data = parseCustomerObject( customer )
+    # Additional information
+    data['signup'] = signup
+
+    if signup:
+        # Contact Customer.Io
+        cio.identify(id=customer[0], email=customer[1], signup=signup)
+    return data
+
 @app.route('/')
 def hello():
     return 'Hello World!'
 
 @app.route('/signup/<email>', methods=['GET'])
 def signupCustomer(email):
-    now = datetime.datetime.utcnow().isoformat()
-    check = facade.retrieveEmail(email)
-    if len(check) > 0:
-        # Take the first result
-        customer = check[0]
-        return jsonify(data={
-            'customer':{
-                'id':customer[0],
-                'email':customer[1]
-            },
-            'signup':False,
-            'date':now
-        })
-    else:
-        facade.saveEmail(email)
-        result = facade.retrieveEmail(email)
-        customer = result[0]
+    data = __signupCustomer()
+    # Return the data
+    return jsonify(data=data)
 
-        cio.identify(id=customer[0], email=customer[1], signup=1)
-        return jsonify(data={
-            'customer':{
-                'id':customer[0],
-                'email':customer[1]
-            },
-            'signup': True,
-            'date':now
-        })
 @app.route('/signup/<email>/force', methods=['GET'])
 def forceSignup(email):
-    check = facade.retrieveEmail(email)
-    now = datetime.datetime.utcnow().isoformat()
-    if len(check) > 0:
-        # Take the first result
-        customer = check[0]
-        cio.identify(id=customer[0], email=customer[1], signup=1)
-        return jsonify(data={
-            'customer':{
-                'id':customer[0],
-                'email':customer[1]
-            },
-            'signup':True,
-            'date':now
-        })
-    else:
-        facade.saveEmail(email)
-        result = facade.retrieveEmail(email)
-        customer = result[0]
+    data = __signupCustomer(True)
+    # Return the data
+    return jsonify(data=data)
 
-        cio.identify(id=customer[0], email=customer[1], signup=1)
-        return jsonify(data={
-            'customer':{
-                'id':customer[0],
-                'email':customer[1]
-            },
-            'signup': True,
-            'date':now
-        })
 
 @app.route('/customers/<email>/events/<eventname>', methods=['GET'])
 def sendEvent(email, eventname):

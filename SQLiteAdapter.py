@@ -20,7 +20,7 @@ class SQLiteAdapter(object):
         conn = lite.connect(self.dbName)
         cursor = conn.cursor()
         resultSet = cursor.execute("SELECT * FROM Emails WHERE Email LIKE ?", (email,))
-        result = resultSet.fetchall()
+        result = resultSet.fetchone()
         conn.close()
         return result
 
