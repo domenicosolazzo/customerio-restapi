@@ -46,7 +46,7 @@ def signupCustomer(email):
         result = facade.retrieveEmail(email)
         customer = result[0]
 
-        cio.identify(id=customer[0], email=customer[1])
+        cio.identify(id=customer[0], email=customer[1], signup=1)
         return jsonify(data={
             'customer':{
                 'id':customer[0],
@@ -60,7 +60,7 @@ def forceSignup(email):
     if len(check) > 0:
         # Take the first result
         customer = check[0]
-        cio.identify(id=customer[0], email=customer[1])
+        cio.identify(id=customer[0], email=customer[1], signup=1)
         return jsonify(data={
             'customer':{
                 'id':customer[0],
@@ -73,7 +73,7 @@ def forceSignup(email):
         result = facade.retrieveEmail(email)
         customer = result[0]
 
-        cio.identify(id=customer[0], email=customer[1])
+        cio.identify(id=customer[0], email=customer[1], signup=1)
         return jsonify(data={
             'customer':{
                 'id':customer[0],
@@ -84,9 +84,18 @@ def forceSignup(email):
 
 @app.route('/customers/<email>/events/<eventname>', methods=['GET'])
 def sendEvent(email, eventname):
+    customer = facade.retrieveEmail(email)
+    if not customer or len(customer) <= 0:
+        raise Exception("Customer is not present.")
+    customer = customer[0]
+    cio.track(customer_id=customer[0], name=eventname)
     return jsonify(data={
-        'email': email,
-        'event': eventname
+        'customer':{
+            'id':customer[0],
+            'email':customer[1]
+        },
+        'event':eventname
+        'date':
     })
 
 if  __name__ == '__main__':
