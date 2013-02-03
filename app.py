@@ -54,6 +54,33 @@ def signupCustomer(email):
             },
             'signup': True
         })
+@app.route('/signup/<email>/force', methods=['GET'])
+def forceSignup(email):
+    check = facade.retrieveEmail(email)
+    if len(check) > 0:
+        # Take the first result
+        customer = check[0]
+        cio.identify(id=customer[0], email=customer[1])
+        return jsonify(data={
+            'customer':{
+                'id':customer[0],
+                'email':customer[1]
+            },
+            'signup':True
+        })
+    else:
+        facade.saveEmail(email)
+        result = facade.retrieveEmail(email)
+        customer = result[0]
+
+        cio.identify(id=customer[0], email=customer[1])
+        return jsonify(data={
+            'customer':{
+                'id':customer[0],
+                'email':customer[1]
+            },
+            'signup': True
+        })
 
 @app.route('/customers/<email>/events/<eventname>', methods=['GET'])
 def sendEvent(email, eventname):
