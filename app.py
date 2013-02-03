@@ -7,7 +7,7 @@ from werkzeug.exceptions import HTTPException, NotFound
 from dbFacade import DBFacade
 
 siteKey = os.environ.get('siteKey', None)
-appKey = os.environ.get('apiKey', None)
+apiKey = os.environ.get('apiKey', None)
 
 def json_flask_app(import_name, **kwargs):
     def make_json_error(ex):
@@ -22,29 +22,40 @@ facade = DBFacade().getInstance('customerio.db', 'sqlite')
 app = json_flask_app(__name__)
 
 
-cio = CustomerIO(siteKey, appKey)
+cio = CustomerIO(siteKey, apiKey)
 
 @app.route('/')
 def hello():
     return 'Hello World!'
 
-@app.route('/signup/<email>')
+@app.route('/signup/<email>', methods=['GET'])
 def signupCustomer(email):
     check = facade.retrieveEmail(email)
     if len(check) > 0:
         # Take the first result
         customer = check[0]
-        return jsonify(data=[{
-            'id':customer[0],
-            'email':customer[1]
-        }])
+        return jsonify(data={
+            'customer':{
+                'id':customer[0],
+                'email':customer[1]
+            },
+            'signup':False
+        })
     else:
         facade.saveEmail(email)
         result = facade.retrieveEmail(email)
-        resultDict = [{'id':item[0], 'email':item[1]} for item in result]
-    return jsonify(data=resultDict)
+        customer = result[0]
 
-@app.route('/customers/<email>/events/<eventname>')
+        cio.identify(id=customer[0], email=customer[1])
+        return jsonify(data={
+            'customer':{
+                'id':customer[0],
+                'email':customer[1]
+            },
+            'signup': True
+        })
+
+@app.route('/customers/<email>/events/<eventname>', methods=['GET'])
 def sendEvent(email, eventname):
     return jsonify(data={
         'email': email,
