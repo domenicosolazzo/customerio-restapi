@@ -34,7 +34,7 @@ def parseCustomerObject(customer):
         'date':datetime.datetime.utcnow().isoformat()
     }
 
-def __signupCustomer(contactCustomerIO=False):
+def __signupCustomer(email, contactCustomerIO=False):
     customer = facade.retrieveEmail(email)
     signup = contactCustomerIO
     if not customer:
@@ -57,13 +57,13 @@ def hello():
 
 @app.route('/signup/<email>', methods=['GET'])
 def signupCustomer(email):
-    data = __signupCustomer()
+    data = __signupCustomer(email)
     # Return the data
     return jsonify(data=data)
 
 @app.route('/signup/<email>/force', methods=['GET'])
 def forceSignup(email):
-    data = __signupCustomer(True)
+    data = __signupCustomer(email, True)
     # Return the data
     return jsonify(data=data)
 
