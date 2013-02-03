@@ -3,7 +3,7 @@ customerio-restapi
 
 A Flask service for interacting with Customer.io
 
-INSTALLATION
+INSTRUCTION
 
 Clone the repository
 
