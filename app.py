@@ -5,6 +5,7 @@ from flask import Flask, jsonify, json
 from werkzeug.exceptions import default_exceptions
 from werkzeug.exceptions import HTTPException, NotFound
 from dbFacade import DBFacade
+import datetime
 
 siteKey = os.environ.get('siteKey', None)
 apiKey = os.environ.get('apiKey', None)
@@ -30,6 +31,7 @@ def hello():
 
 @app.route('/signup/<email>', methods=['GET'])
 def signupCustomer(email):
+    now = datetime.datetime.utcnow().isoformat()
     check = facade.retrieveEmail(email)
     if len(check) > 0:
         # Take the first result
@@ -39,7 +41,8 @@ def signupCustomer(email):
                 'id':customer[0],
                 'email':customer[1]
             },
-            'signup':False
+            'signup':False,
+            'date':now
         })
     else:
         facade.saveEmail(email)
@@ -52,11 +55,13 @@ def signupCustomer(email):
                 'id':customer[0],
                 'email':customer[1]
             },
-            'signup': True
+            'signup': True,
+            'date':now
         })
 @app.route('/signup/<email>/force', methods=['GET'])
 def forceSignup(email):
     check = facade.retrieveEmail(email)
+    now = datetime.datetime.utcnow().isoformat()
     if len(check) > 0:
         # Take the first result
         customer = check[0]
@@ -66,7 +71,8 @@ def forceSignup(email):
                 'id':customer[0],
                 'email':customer[1]
             },
-            'signup':True
+            'signup':True,
+            'date':now
         })
     else:
         facade.saveEmail(email)
@@ -79,7 +85,8 @@ def forceSignup(email):
                 'id':customer[0],
                 'email':customer[1]
             },
-            'signup': True
+            'signup': True,
+            'date':now
         })
 
 @app.route('/customers/<email>/events/<eventname>', methods=['GET'])
@@ -94,8 +101,8 @@ def sendEvent(email, eventname):
             'id':customer[0],
             'email':customer[1]
         },
-        'event':eventname
-        'date':
+        'event':eventname,
+        'date': datetime.datetime.utcnow().isoformat()
     })
 
 if  __name__ == '__main__':
